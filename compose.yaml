@@ -4,6 +4,8 @@ version: "3.8"
 #配置集成的服务
 services:
   redis:
+    #设置镜像名称和TAG
+    image: docker-zy-redis:V1.0
     build:
       context: ./database/redis
       args:
