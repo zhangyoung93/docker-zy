@@ -28,7 +28,7 @@ RUN chown -R redis:redis ${REDIS_HOME} \
     && sed -i 's/\r$//' ${REDIS_HOME}/bin/redis-start.sh
 
 #声名容器暴露的端口，具体实现需添加映射关系
-EXPOSE 6379
+EXPOSE ${REDIS_HOST_PORT}
 
 #用户从root切换到redis，避免使用root运行，需先创建用户RUN useradd -m appuser
 USER redis

@@ -9,6 +9,7 @@ services:
     build:
       context: ./database/redis
       args:
+        #参数传递到Dockerfile
         - REDIS_HOME=${REDIS_HOME}
     container_name: redis-zy
     #容器异常退出时是否自动重启
