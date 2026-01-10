@@ -1,0 +1,39 @@
+#compose语法版本
+version: "3.8"
+
+#配置集成的服务
+services:
+  redis:
+    #设置镜像名称和TAG
+    image: docker-zy-redis:V1.0
+    build:
+      context: ./database/redis
+      args:
+        #参数传递到Dockerfile
+        - REDIS_HOME=${REDIS_HOME}
+    container_name: redis-zy
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_HOST_PORT}:6379
+    environment:
+      #密码传递给shell执行
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    #启动命令。设置密码、开启持久化
+    #command:
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    networks:
+      #加入自定义网络，方便容器间通信
+      - app-network
+volumes:
+  #定义数据卷。容器删除后数据不丢失。
+  redis_data:
+    driver: local
+
+networks:
+  #定义应用网络。容器间可通过服务名通信。
+  app-network:
+    driver: bridge
