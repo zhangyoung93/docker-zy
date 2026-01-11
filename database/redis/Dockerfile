@@ -18,23 +18,24 @@ RUN mkdir -p ${REDIS_HOME}/bin \
     && chown -R redis:redis ${REDIS_HOME} \
     && chmod -R 775 ${REDIS_HOME}
 
-#从宿主机复制文件到镜像
+#从宿主机复制配置文件到容器
 COPY conf/redis.conf ${REDIS_HOME}/redis.conf
-COPY bin/redis-start.sh ${REDIS_HOME}/bin/redis-start.sh
+COPY conf/sentinel.conf ${REDIS_HOME}/sentinel.conf
+#COPY bin/redis-start.sh ${REDIS_HOME}/bin/redis-start.sh
 
 #最后赋权。记得处理windows换行符，不然会找不到shell文件
 RUN chown -R redis:redis ${REDIS_HOME} \
-    && chmod -R 775 ${REDIS_HOME} \
-    && sed -i 's/\r$//' ${REDIS_HOME}/bin/redis-start.sh
+    && chmod -R 775 ${REDIS_HOME}
+    #&& sed -i 's/\r$//' ${REDIS_HOME}/bin/redis-start.sh
 
 #声名容器暴露的端口，具体实现需添加映射关系
-EXPOSE ${REDIS_HOST_PORT}
+#EXPOSE ${REDIS_HOST_PORT}
 
 #用户从root切换到redis，避免使用root运行，需先创建用户RUN useradd -m appuser
 USER redis
 
 #容器启动辅助命令或参数，可被docker run覆盖。可定义多次，但只有最后一个CMD生效
-CMD ["/usr/local/redis/bin/redis-start.sh"]
+#CMD ["/usr/local/redis/bin/redis-start.sh"]
 
 #容器启动主命令，可配合CMD使用，不会被覆盖。只能定义一次。
 #ENTRYPOINT

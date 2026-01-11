@@ -3,31 +3,187 @@ version: "3.8"
 
 #配置集成的服务
 services:
-  redis:
+  #redis-master服务
+  redis-master:
     #设置镜像名称和TAG
-    image: docker-zy-redis:V1.0
+    image: redis:V1.0
+    build:
+      #dockerfile文件位置
+      context: ./database/redis
+      #参数传递到Dockerfile
+      args:
+        - REDIS_HOME=${REDIS_HOME}
+    #容器名称
+    container_name: redis-master
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_HOST_PORT}:${REDIS_MASTER_PORT}
+#    #传递给容器的环境变量
+#    environment:
+#      #密码传递给shell执行
+#      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    #启动命令。
+    command:
+      - redis-server
+      - ${REDIS_HOME}/redis.conf
+      - --port ${REDIS_MASTER_PORT}
+    #数据卷
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    #网络
+    networks:
+      #加入自定义网络，方便容器间通信
+      - app-network
+
+  #redis-slave-1服务
+  redis-slave-1:
+    #设置镜像名称和TAG
+    image: redis:V1.0
     build:
       context: ./database/redis
       args:
         #参数传递到Dockerfile
         - REDIS_HOME=${REDIS_HOME}
-    container_name: redis-zy
+    container_name: redis-slave-1
     #容器异常退出时是否自动重启
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_HOST_PORT}:6379
-    environment:
-      #密码传递给shell执行
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    #启动命令。设置密码、开启持久化
-    #command:
+      - ${REDIS_SLAVE1_PORT}:${REDIS_SLAVE1_PORT}
+#    environment:
+#      #密码传递给shell执行
+#      - REDIS_PASSWORD=${REDIS_PASSWORD}
+#      #SLAVE节点要多传递MASTER的节点信息
+#      - REDIS_MASTER_NODE=${REDIS_MASTER_NODE}
+    #启动命令。、
+    command:
+      - redis-server
+      - ${REDIS_HOME}/redis.conf
+      - --port ${REDIS_SLAVE1_PORT}
+      - --replicaof ${REDIS_MASTER_NODE}
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    networks:
+    #加入自定义网络，方便容器间通信
+      - app-network
+
+  #redis-slave-2服务
+  redis-slave-2:
+    #设置镜像名称和TAG
+    image: redis:V1.0
+    build:
+      context: ./database/redis
+      args:
+        #参数传递到Dockerfile
+        - REDIS_HOME=${REDIS_HOME}
+    container_name: redis-slave-2
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_SLAVE2_PORT}:${REDIS_SLAVE2_PORT}
+#    environment:
+#      #密码传递给shell执行
+#      - REDIS_PASSWORD=${REDIS_PASSWORD}
+#      #SLAVE节点要多传递MASTER的节点信息
+#      - REDIS_MASTER_NODE=${REDIS_MASTER_NODE}
+    #启动命令。
+    command:
+      - redis-server
+      - ${REDIS_HOME}/redis.conf
+      - --port ${REDIS_SLAVE2_PORT}
+      - --replicaof ${REDIS_MASTER_NODE}
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    networks:
+    #加入自定义网络，方便容器间通信
+      - app-network
+
+  #redis-sentinel-1服务
+  redis-sentinel-1:
+    #设置镜像名称和TAG
+    image: redis:V1.0
+    build:
+      context: ./database/redis
+      args:
+        #参数传递到Dockerfile
+        - REDIS_HOME=${REDIS_HOME}
+    container_name: redis-sentinel-1
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_SENTINEL1_PORT}:${REDIS_SENTINEL1_PORT}
+    #启动命令。
+    command:
+      - redis-sentinel
+      - ${REDIS_HOME}/sentinel.conf
+      - --port ${REDIS_SENTINEL1_PORT}
     volumes:
       #持久化目录
       - redis_data:${REDIS_DATA}
     networks:
       #加入自定义网络，方便容器间通信
       - app-network
+
+  #redis-sentinel-2服务
+  redis-sentinel-2:
+    #设置镜像名称和TAG
+    image: redis:V1.0
+    build:
+      context: ./database/redis
+      args:
+        #参数传递到Dockerfile
+        - REDIS_HOME=${REDIS_HOME}
+    container_name: redis-sentinel-2
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_SENTINEL2_PORT}:${REDIS_SENTINEL2_PORT}
+    command:
+      - redis-sentinel
+      - ${REDIS_HOME}/sentinel.conf
+      - --port ${REDIS_SENTINEL2_PORT}
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    networks:
+      #加入自定义网络，方便容器间通信
+      - app-network
+
+  #redis-sentinel-3服务
+  redis-sentinel-3:
+    #设置镜像名称和TAG
+    image: redis:V1.0
+    build:
+      context: ./database/redis
+      args:
+        #参数传递到Dockerfile
+        - REDIS_HOME=${REDIS_HOME}
+    container_name: redis-sentinel-3
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      - ${REDIS_SENTINEL3_PORT}:${REDIS_SENTINEL3_PORT}
+    #启动命令。
+    command:
+      - redis-sentinel
+      - ${REDIS_HOME}/sentinel.conf
+      - --port ${REDIS_SENTINEL3_PORT}
+    volumes:
+      #持久化目录
+      - redis_data:${REDIS_DATA}
+    networks:
+      #加入自定义网络，方便容器间通信
+      - app-network
+
 volumes:
   #定义数据卷。容器删除后数据不丢失。
   redis_data:
