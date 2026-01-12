@@ -14,7 +14,7 @@ WORKDIR ${REDIS_HOME}
 ENV REDIS_HOME=${REDIS_HOME}
 
 #镜像构建命令，推荐使用&&合并命令
-RUN mkdir -p ${REDIS_HOME}/bin \
+RUN mkdir -p ${REDIS_HOME}/data \
     && chown -R redis:redis ${REDIS_HOME} \
     && chmod -R 775 ${REDIS_HOME}
 
@@ -31,7 +31,7 @@ RUN chown -R redis:redis ${REDIS_HOME} \
 #声名容器暴露的端口，具体实现需添加映射关系
 #EXPOSE ${REDIS_HOST_PORT}
 
-#用户从root切换到redis，避免使用root运行，需先创建用户RUN useradd -m appuser
+#用户从root切换到redis，避免使用root运行，redis官方镜像默认用redis用户运行。
 USER redis
 
 #容器启动辅助命令或参数，可被docker run覆盖。可定义多次，但只有最后一个CMD生效

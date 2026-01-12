@@ -1,0 +1,12 @@
+后台启动服务：docker compose up -d [arg]
+arg:
+[--build] 重建镜像
+[service-name] 指定服务名称
+[--force-recreate] 强制重建容器
+
+
+停止并保留容器(service-name表示指定服务)：docker compose stop [service-name]
+
+停止并删除容器(-v表示额外删除数据卷)，用于重建：docker compose down [-v]
+
+删除指定网络，可指定多个：docker network rm network-name-1 [network-name-2]

@@ -1,6 +1,17 @@
 #compose语法版本
 version: "3.8"
 
+networks:
+  #定义应用网络。容器间可通过服务名通信。
+  redis-network:
+    driver: bridge
+    name: redis-network
+
+volumes:
+  #定义数据卷。容器删除后数据不丢失。
+  redis_data:
+    driver: local
+
 #配置集成的服务
 services:
   #redis-master服务
@@ -19,7 +30,7 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_HOST_PORT}:${REDIS_MASTER_PORT}
+      - ${REDIS_MASTER_PORT}:6379
 #    #传递给容器的环境变量
 #    environment:
 #      #密码传递给shell执行
@@ -28,15 +39,14 @@ services:
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --port ${REDIS_MASTER_PORT}
     #数据卷
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     #网络
     networks:
       #加入自定义网络，方便容器间通信
-      - app-network
+      - redis-network
 
   #redis-slave-1服务
   redis-slave-1:
@@ -52,24 +62,24 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_SLAVE1_PORT}:${REDIS_SLAVE1_PORT}
+      - ${REDIS_SLAVE1_PORT}:6379
 #    environment:
 #      #密码传递给shell执行
 #      - REDIS_PASSWORD=${REDIS_PASSWORD}
-#      #SLAVE节点要多传递MASTER的节点信息
-#      - REDIS_MASTER_NODE=${REDIS_MASTER_NODE}
     #启动命令。、
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --port ${REDIS_SLAVE1_PORT}
-      - --replicaof ${REDIS_MASTER_NODE}
+      - --replicaof redis-master ${REDIS_MASTER_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
-      - app-network
+      - redis-network
+    #保证主库先启动
+    depends_on:
+      - redis-master
 
   #redis-slave-2服务
   redis-slave-2:
@@ -85,24 +95,24 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_SLAVE2_PORT}:${REDIS_SLAVE2_PORT}
+      - ${REDIS_SLAVE2_PORT}:6379
 #    environment:
 #      #密码传递给shell执行
 #      - REDIS_PASSWORD=${REDIS_PASSWORD}
-#      #SLAVE节点要多传递MASTER的节点信息
-#      - REDIS_MASTER_NODE=${REDIS_MASTER_NODE}
     #启动命令。
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --port ${REDIS_SLAVE2_PORT}
-      - --replicaof ${REDIS_MASTER_NODE}
+      - --replicaof redis-master ${REDIS_MASTER_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
-      - app-network
+      - redis-network
+    #保证主库先启动
+    depends_on:
+      - redis-master
 
   #redis-sentinel-1服务
   redis-sentinel-1:
@@ -118,18 +128,20 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_SENTINEL1_PORT}:${REDIS_SENTINEL1_PORT}
+      - ${REDIS_SENTINEL1_PORT}:26379
     #启动命令。
     command:
       - redis-sentinel
       - ${REDIS_HOME}/sentinel.conf
-      - --port ${REDIS_SENTINEL1_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     networks:
-      #加入自定义网络，方便容器间通信
-      - app-network
+      - redis-network
+    depends_on:
+      - redis-master
+      - redis-slave-1
+      - redis-slave-2
 
   #redis-sentinel-2服务
   redis-sentinel-2:
@@ -145,18 +157,19 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_SENTINEL2_PORT}:${REDIS_SENTINEL2_PORT}
+      - ${REDIS_SENTINEL2_PORT}:26379
     command:
       - redis-sentinel
       - ${REDIS_HOME}/sentinel.conf
-      - --port ${REDIS_SENTINEL2_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     networks:
-      #加入自定义网络，方便容器间通信
-      - app-network
-
+      - redis-network
+    depends_on:
+      - redis-master
+      - redis-slave-1
+      - redis-slave-2
   #redis-sentinel-3服务
   redis-sentinel-3:
     #设置镜像名称和TAG
@@ -171,25 +184,17 @@ services:
     restart: always
     #端口映射。宿主机:容器
     ports:
-      - ${REDIS_SENTINEL3_PORT}:${REDIS_SENTINEL3_PORT}
+      - ${REDIS_SENTINEL3_PORT}:26379
     #启动命令。
     command:
       - redis-sentinel
       - ${REDIS_HOME}/sentinel.conf
-      - --port ${REDIS_SENTINEL3_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_DATA}
+      - redis_data:${REDIS_HOME}/data
     networks:
-      #加入自定义网络，方便容器间通信
-      - app-network
-
-volumes:
-  #定义数据卷。容器删除后数据不丢失。
-  redis_data:
-    driver: local
-
-networks:
-  #定义应用网络。容器间可通过服务名通信。
-  app-network:
-    driver: bridge
+      - redis-network
+    depends_on:
+      - redis-master
+      - redis-slave-1
+      - redis-slave-2
