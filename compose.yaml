@@ -8,9 +8,13 @@ networks:
     name: redis-network
 
 volumes:
-  #定义数据卷。容器删除后数据不丢失。
-  redis_data:
-    driver: local
+  #定义数据卷。
+  redis_master_data:
+  redis_slave1_data:
+  redis_slave2_data:
+  redis_sentinel1_data:
+  redis_sentinel2_data:
+  redis_sentinel3_data:
 
 #配置集成的服务
 services:
@@ -42,7 +46,7 @@ services:
     #数据卷
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_master_data:${REDIS_HOME}/data
     #网络
     networks:
       #加入自定义网络，方便容器间通信
@@ -70,10 +74,12 @@ services:
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --replicaof redis-master ${REDIS_MASTER_PORT}
+      - --replicaof redis-master 6379
+      - --replica-announce-ip host.docker.internal
+      - --replica-announce-port ${REDIS_SLAVE1_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_slave1_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
       - redis-network
@@ -103,10 +109,12 @@ services:
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --replicaof redis-master ${REDIS_MASTER_PORT}
+      - --replicaof redis-master 6379
+      - --replica-announce-ip host.docker.internal
+      - --replica-announce-port ${REDIS_SLAVE2_PORT}
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_slave2_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
       - redis-network
@@ -135,7 +143,7 @@ services:
       - ${REDIS_HOME}/sentinel.conf
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_sentinel1_data:${REDIS_HOME}/data
     networks:
       - redis-network
     depends_on:
@@ -163,7 +171,7 @@ services:
       - ${REDIS_HOME}/sentinel.conf
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_sentinel2_data:${REDIS_HOME}/data
     networks:
       - redis-network
     depends_on:
@@ -191,7 +199,7 @@ services:
       - ${REDIS_HOME}/sentinel.conf
     volumes:
       #持久化目录
-      - redis_data:${REDIS_HOME}/data
+      - redis_sentinel3_data:${REDIS_HOME}/data
     networks:
       - redis-network
     depends_on:
