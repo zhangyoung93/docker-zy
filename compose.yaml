@@ -1,14 +1,14 @@
-#compose语法版本
-version: "3.8"
-
 networks:
-  #定义应用网络。容器间可通过服务名通信。
+  #如果宿主机在windows环境，需要添加127.0.0.1 host.docker.internal映射。此文件按照windows环境宿主配置。
+  #如果宿主机在linux环境或docker容器，修改sentinel monitor mymaster、replica-announce-ip配置
+  #创建redis网络，1主2从3哨兵。
   redis-network:
     driver: bridge
+    #显式声名网络名称，避免docker自动生成名称，引用时混淆。
     name: redis-network
 
 volumes:
-  #定义数据卷。
+  #创建数据卷。
   redis_master_data:
   redis_slave1_data:
   redis_slave2_data:
@@ -39,10 +39,12 @@ services:
 #    environment:
 #      #密码传递给shell执行
 #      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    #启动命令。
+    #启动命令。宿主机在windows环境，为了满足宿主机能正确访问redis主从库，配置host.docker.internal
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
+      - --replica-announce-ip host.docker.internal
+      - --replica-announce-port ${REDIS_MASTER_PORT}
     #数据卷
     volumes:
       #持久化目录
