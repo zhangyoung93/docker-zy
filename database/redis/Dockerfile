@@ -10,8 +10,9 @@ ARG REDIS_HOME
 #工作目录
 WORKDIR ${REDIS_HOME}
 
-#设置容器内的环境变量，多个环境变量可用\分割
+#设置容器内的环境变量，多个环境变量换行可用\分割
 ENV REDIS_HOME=${REDIS_HOME}
+ENV TZ=Asia/Shanghai
 
 #镜像构建命令，推荐使用&&合并命令
 RUN mkdir -p ${REDIS_HOME}/data \
@@ -27,6 +28,11 @@ COPY conf/sentinel.conf ${REDIS_HOME}/sentinel.conf
 RUN chown -R redis:redis ${REDIS_HOME} \
     && chmod -R 775 ${REDIS_HOME}
     #&& sed -i 's/\r$//' ${REDIS_HOME}/bin/redis-start.sh
+
+#Alpine镜像安装tzdate时区依赖
+RUN apk add --no-cache tzdata \
+    && ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
 
 #声名容器暴露的端口，具体实现需添加映射关系
 #EXPOSE ${REDIS_HOST_PORT}
