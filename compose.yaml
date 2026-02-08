@@ -43,7 +43,7 @@ services:
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --replica-announce-port ${REDIS_MASTER_PORT}
+      #- --replica-announce-port ${REDIS_MASTER_PORT}
     #数据卷
     volumes:
       #持久化目录
