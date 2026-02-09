@@ -16,6 +16,7 @@ volumes:
   redis_sentinel2_data:
   redis_sentinel3_data:
   nacos_data:
+  sentinel_data:
 
 #配置集成的服务
 services:
@@ -233,5 +234,21 @@ services:
     volumes:
       #持久化目录
       - nacos_data:/home/nacos
+    networks:
+      - zy-network
+
+  sentinel-dashboard:
+    image: sentinel-dashboard:v1.8.9
+    build:
+      context: ./sentinel
+      args:
+        - SENTINEL_HOME=${SENTINEL_HOME}
+        - SENTINEL_SERVER_PORT=${SENTINEL_SERVER_PORT}
+    container_name: sentinel-dashboard
+    ports:
+      - "8081:8081"
+    volumes:
+      - sentinel_data:${SENTINEL_HOME}
+    restart: always
     networks:
       - zy-network
