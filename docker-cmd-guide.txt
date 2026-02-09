@@ -10,3 +10,9 @@ arg:
 停止并删除容器(-v表示额外删除数据卷)，用于重建：docker compose down [-v]
 
 删除指定网络，可指定多个：docker network rm network-name-1 [network-name-2]
+
+查看指定容器配置：docker inspect [service-name]
+
+查看网络配置：docker network ls
+
+临时运行镜像调试：docker run -it --rm [image-name:image-version] /bin/bash

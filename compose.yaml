@@ -2,10 +2,10 @@ networks:
   #如果宿主机在windows环境，需要添加127.0.0.1 host.docker.internal映射。此文件按照windows环境宿主配置。
   #如果宿主机在linux环境或docker容器，修改sentinel monitor mymaster、replica-announce-ip配置
   #创建redis网络，1主2从3哨兵。
-  redis-network:
+  zy-network:
     driver: bridge
     #显式声名网络名称，避免docker自动生成名称，引用时混淆。
-    name: redis-network
+    name: zy-network
 
 volumes:
   #创建数据卷。
@@ -15,6 +15,8 @@ volumes:
   redis_sentinel1_data:
   redis_sentinel2_data:
   redis_sentinel3_data:
+  nacos_data:
+  sentinel_data:
 
 #配置集成的服务
 services:
@@ -43,7 +45,7 @@ services:
     command:
       - redis-server
       - ${REDIS_HOME}/redis.conf
-      - --replica-announce-port ${REDIS_MASTER_PORT}
+      #- --replica-announce-port ${REDIS_MASTER_PORT}
     #数据卷
     volumes:
       #持久化目录
@@ -51,7 +53,7 @@ services:
     #网络
     networks:
       #加入自定义网络，方便容器间通信
-      - redis-network
+      - zy-network
 
   #redis-slave-1服务
   redis-slave-1:
@@ -82,7 +84,7 @@ services:
       - redis_slave1_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
-      - redis-network
+      - zy-network
     #保证主库先启动
     depends_on:
       - redis-master
@@ -116,7 +118,7 @@ services:
       - redis_slave2_data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
-      - redis-network
+      - zy-network
     #保证主库先启动
     depends_on:
       - redis-master
@@ -145,7 +147,7 @@ services:
       #持久化目录
       - redis_sentinel1_data:${REDIS_HOME}/data
     networks:
-      - redis-network
+      - zy-network
     depends_on:
       - redis-master
       - redis-slave-1
@@ -174,7 +176,7 @@ services:
       #持久化目录
       - redis_sentinel2_data:${REDIS_HOME}/data
     networks:
-      - redis-network
+      - zy-network
     depends_on:
       - redis-master
       - redis-slave-1
@@ -203,8 +205,50 @@ services:
       #持久化目录
       - redis_sentinel3_data:${REDIS_HOME}/data
     networks:
-      - redis-network
+      - zy-network
     depends_on:
       - redis-master
       - redis-slave-1
       - redis-slave-2
+
+
+  nacos-server:
+    image: nacos-server:v3.1.1
+    build:
+      context: ./nacos
+    container_name: nacos-server
+    #容器异常退出时是否自动重启
+    restart: always
+    #端口映射。宿主机:容器
+    ports:
+      #服务端口
+      - "8848:8848"
+      #控制台端口
+      - "8080:8080"
+      # gRPC端口（客户端通信）
+      - "9848:9848"
+      # gRPC端口（集群通信）
+      - "9849:9849"
+      # 控制台鉴权端口（可选）
+      - "9555:9555"
+    volumes:
+      #持久化目录
+      - nacos_data:/home/nacos
+    networks:
+      - zy-network
+
+  sentinel-dashboard:
+    image: sentinel-dashboard:v1.8.9
+    build:
+      context: ./sentinel
+      args:
+        - SENTINEL_HOME=${SENTINEL_HOME}
+        - SENTINEL_SERVER_PORT=${SENTINEL_SERVER_PORT}
+    container_name: sentinel-dashboard
+    ports:
+      - "8081:8081"
+    volumes:
+      - sentinel_data:${SENTINEL_HOME}
+    restart: always
+    networks:
+      - zy-network
