@@ -18,6 +18,10 @@ COPY bin/start.sh ${SENTINEL_HOME}/
 
 RUN chmod +x ${SENTINEL_HOME}/start.sh
 
+#CentOS镜像设置时区
+RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
+
 ENTRYPOINT ["./start.sh"]
 
 
