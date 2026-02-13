@@ -9,14 +9,22 @@ networks:
 
 volumes:
   #创建数据卷。
-  redis_master_data:
-  redis_slave1_data:
-  redis_slave2_data:
-  redis_sentinel1_data:
-  redis_sentinel2_data:
-  redis_sentinel3_data:
-  nacos_data:
-  sentinel_data:
+  redis-master-data:
+    name: redis-master-data
+  redis-slave1-data:
+    name: redis-slave1-data
+  redis-slave2-data:
+    name: redis-slave2-data
+  redis-sentinel1-data:
+    name: redis-sentinel1-data
+  redis-sentinel2-data:
+    name: redis-sentinel2-data
+  redis-sentinel3-data:
+    name: redis-sentinel3-data
+  nacos-data:
+    name: nacos-data
+  sentinel-data:
+    name: sentinel-data
 
 #配置集成的服务
 services:
@@ -49,7 +57,7 @@ services:
     #数据卷
     volumes:
       #持久化目录
-      - redis_master_data:${REDIS_HOME}/data
+      - redis-master-data:${REDIS_HOME}/data
     #网络
     networks:
       #加入自定义网络，方便容器间通信
@@ -81,7 +89,7 @@ services:
       - --replica-announce-port ${REDIS_SLAVE1_PORT}
     volumes:
       #持久化目录
-      - redis_slave1_data:${REDIS_HOME}/data
+      - redis-slave1-data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
       - zy-network
@@ -115,7 +123,7 @@ services:
       - --replica-announce-port ${REDIS_SLAVE2_PORT}
     volumes:
       #持久化目录
-      - redis_slave2_data:${REDIS_HOME}/data
+      - redis-slave2-data:${REDIS_HOME}/data
     networks:
     #加入自定义网络，方便容器间通信
       - zy-network
@@ -145,7 +153,7 @@ services:
       - --sentinel announce-port ${REDIS_SENTINEL1_PORT}
     volumes:
       #持久化目录
-      - redis_sentinel1_data:${REDIS_HOME}/data
+      - redis-sentinel1-data:${REDIS_HOME}/data
     networks:
       - zy-network
     depends_on:
@@ -174,7 +182,7 @@ services:
       - --sentinel announce-port ${REDIS_SENTINEL2_PORT}
     volumes:
       #持久化目录
-      - redis_sentinel2_data:${REDIS_HOME}/data
+      - redis-sentinel2-data:${REDIS_HOME}/data
     networks:
       - zy-network
     depends_on:
@@ -203,7 +211,7 @@ services:
       - --sentinel announce-port ${REDIS_SENTINEL3_PORT}
     volumes:
       #持久化目录
-      - redis_sentinel3_data:${REDIS_HOME}/data
+      - redis-sentinel3-data:${REDIS_HOME}/data
     networks:
       - zy-network
     depends_on:
@@ -233,7 +241,7 @@ services:
       - "9555:9555"
     volumes:
       #持久化目录
-      - nacos_data:/home/nacos
+      - nacos-data:/home/nacos
     networks:
       - zy-network
 
@@ -248,7 +256,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - sentinel_data:${SENTINEL_HOME}
+      - sentinel-data:${SENTINEL_HOME}
     restart: always
     networks:
       - zy-network
